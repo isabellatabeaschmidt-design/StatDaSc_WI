@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 import numpy as np
-from datetime import date
+
 from scipy.stats import pearsonr, t as t_dist, shapiro, gaussian_kde, probplot as scipy_probplot
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -662,46 +662,19 @@ def parse_csv(files, person_name: str) -> dict:
         "raw":   df,
     }
 
-# ── Demo-Daten · 3 Tage/Woche = Montag, Dienstag, Mittwoch ───────────────────────
-@st.cache_data
-def make_demo(person: str, seed: int, start_kw: int = 6, n_weeks: int = 13,
-              iso_year: int = 2026) -> dict:
-    rng = np.random.default_rng(seed)
-    app_pool = ["WhatsApp", "Instagram", "YouTube", "TikTok", "Spotify",
-                "Chrome", "Maps", "Snapchat", "Netflix", "LinkedIn", "Slack",
-                "Notion", "Duolingo", "Reddit"]
-    rows_tag, rows_woche, rows_apps = [], [], []
-    for i in range(n_weeks):
-        kw = start_kw + i
-        mon = date.fromisocalendar(iso_year, kw, 1)   # Montag
-        days = [mon, date.fromisocalendar(iso_year, kw, 2),  # Dienstag
-                date.fromisocalendar(iso_year, kw, 3)]       # Mittwoch
-        dstr = [f"{d.day:02d}.{d.month:02d}.{d.year}" for d in days]
-        week_total = int(rng.normal(1600, 280))
-        rows_woche.append({
-            "woche": str(kw), "datum": f"{mon.day:02d}.{mon.month:02d}.-{days[-1].day:02d}.{days[-1].month:02d}.",
-            "daten_kategorie": "woche_gesamt", "name": "gesamt",
-            "dauer_minuten": week_total, "person": person,
-        })
-        for ds in dstr:
-            daily = max(60, int(rng.normal(week_total / 3, 45)))
-            rows_tag.append({
-                "woche": str(kw), "datum": ds, "daten_kategorie": "tag_gesamt",
-                "name": "gesamt", "dauer_minuten": daily, "person": person,
-            })
-            top = rng.choice(app_pool, 5, replace=False)
-            portions = rng.dirichlet(np.ones(5)) * daily * 0.7
-            for app, t in zip(top, portions):
-                rows_apps.append({
-                    "woche": str(kw), "datum": ds, "daten_kategorie": "top_app",
-                    "name": app, "dauer_minuten": int(t), "person": person,
-                })
-    all_rows = rows_tag + rows_woche + rows_apps
+# ── Leere Datenstruktur (kein Upload) ────────────────────────────────────────────
+def empty_data(name: str) -> dict:
+    cols = ["woche", "datum", "daten_kategorie", "name", "dauer_minuten", "person"]
+    empty = pd.DataFrame(columns=cols)
     return {
-        "tag":   pd.DataFrame(rows_tag),
-        "woche": pd.DataFrame(rows_woche),
-        "apps":  pd.DataFrame(rows_apps),
-        "raw":   pd.DataFrame(all_rows),
+        "tag":            empty.copy(),
+        "woche":          empty.copy(),
+        "apps":           empty.copy(),
+        "raw":            empty.copy(),
+        "_source":        "empty",
+        "_error":         None,
+        "_date_failures": 0,
+        "_dated_rows":    0,
     }
 
 # ── Kategorie-State ──────────────────────────────────────────────────────────────
@@ -744,53 +717,41 @@ with st.sidebar:
     st.caption("Proof of Life · Semesterprojekt")
 
 # ── Daten laden ──────────────────────────────────────────────────────────────────
-def load(files, name, seed) -> dict:
-    """
-    Lädt Daten aus CSV-Dateien; fällt auf Demo zurück, wenn keine Datei da ist
-    oder das Parsen scheitert. Hängt Metadaten an (_source, _error, _date_failures),
-    damit der Aufrufer Probleme sichtbar melden kann — keine stillen Fehler.
-    """
-    source, error_msg = "upload", None
+def load(files, name: str) -> dict:
+    """Lädt CSV-Dateien; gibt leere Struktur zurück wenn keine Datei vorhanden."""
+    if not files:
+        return empty_data(name)
     try:
-        if files:
-            d = parse_csv(files, name)
-        else:
-            d = make_demo(name, seed)
-            source = "demo"
+        d = parse_csv(files, name)
     except Exception as e:
-        error_msg = str(e)
-        d = make_demo(name, seed)
-        source = "demo_fallback"
+        st.error(
+            f"**{name}:** CSV konnte nicht gelesen werden (`{e}`). "
+            f"Prüfe Spalten: woche, datum, daten_kategorie, name, dauer_minuten."
+        )
+        return empty_data(name)
+
     d["tag"],  nf_tag  = add_weekday(d["tag"])
     d["apps"], nf_apps = add_weekday(d["apps"])
-    # App-Namen für Anzeige normalisieren (bekannte Apps korrekt, Rest Title-Case)
     d["apps"]["name"] = d["apps"]["name"].apply(
         lambda n: DISPLAY_NAMES.get(n.lower(), n if any(c.isupper() for c in n) else n.title())
     )
-    d["_source"]         = source
-    d["_error"]          = error_msg
-    d["_date_failures"]  = nf_tag + nf_apps
-    d["_dated_rows"]     = int(len(d["tag"]) + len(d["apps"]))
+    d["_source"]        = "upload"
+    d["_error"]         = None
+    d["_date_failures"] = nf_tag + nf_apps
+    d["_dated_rows"]    = int(len(d["tag"]) + len(d["apps"]))
     return d
 
 init_category_state()
 
-d1 = load(files1, name1, 42)
-d2 = load(files2, name2, 99)
+d1 = load(files1, name1)
+d2 = load(files2, name2)
 
-# Probleme beim Laden sichtbar melden (kein stiller Demo-Fallback, keine stillen NaN)
+# Datumsformat-Warnung (nur bei echten Uploads mit Problemen)
 for d, nm in [(d1, name1), (d2, name2)]:
-    if d["_source"] == "demo_fallback":
-        st.error(
-            f"**{nm}:** Die hochgeladene CSV konnte nicht gelesen werden "
-            f"(`{d['_error']}`). Es werden ersatzweise **Demo-Daten** angezeigt — "
-            f"prüfe Spalten (woche, datum, daten_kategorie, name, dauer_minuten) und Format."
-        )
-    elif d["_source"] == "upload" and d["_date_failures"] > 0:
+    if d["_source"] == "upload" and d["_date_failures"] > 0:
         st.warning(
             f"**{nm}:** {d['_date_failures']} von {d['_dated_rows']} Datumswerten "
             f"konnten nicht als **TT.MM.JJJJ** gelesen werden (z. B. 16.03.2026). "
-            f"Für diese Zeilen bleibt die Wochentags-Analyse leer. "
             f"Bitte Datumsformat in der CSV prüfen."
         )
 
@@ -843,8 +804,80 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 if not files1 and not files2:
-    st.info("Demo-Daten aktiv (13 Wochen, je Mo/Di/Mi). Lade links deine CSV-Dateien hoch — "
-            "alle Wochen auf einmal auswählbar.")
+    st.markdown(f"""
+<div style="max-width:680px;margin-top:1.5rem">
+
+  <!-- Willkommenstext -->
+  <p style="color:#6b7280;font-size:.95rem;line-height:1.7;margin-bottom:2rem">
+    Diese App vergleicht die Bildschirmzeit von zwei Personen über mehrere Wochen —
+    und erzählt daraus eine Geschichte. Ladet eure CSV-Dateien hoch und los geht's.
+  </p>
+
+  <!-- Schritt-für-Schritt -->
+  <div style="display:flex;flex-direction:column;gap:.85rem;margin-bottom:2rem">
+
+    <div style="display:flex;gap:1rem;align-items:flex-start">
+      <div style="min-width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});
+                  display:flex;align-items:center;justify-content:center;
+                  font-family:'Fraunces',serif;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0">1</div>
+      <div>
+        <div style="font-weight:600;color:#23252f;font-size:.9rem">Namen eintragen</div>
+        <div style="color:#6b7280;font-size:.84rem;margin-top:.15rem">
+          In der Sidebar links tragt ihr eure Namen ein — Person 1 und Person 2.
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;align-items:flex-start">
+      <div style="min-width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});
+                  display:flex;align-items:center;justify-content:center;
+                  font-family:'Fraunces',serif;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0">2</div>
+      <div>
+        <div style="font-weight:600;color:#23252f;font-size:.9rem">CSV-Dateien hochladen</div>
+        <div style="color:#6b7280;font-size:.84rem;margin-top:.15rem">
+          Pro Person eine oder mehrere CSV-Dateien — eine Datei pro Woche, oder alle auf einmal.
+          Ihr könnt mehrere Dateien gleichzeitig auswählen.
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:1rem;align-items:flex-start">
+      <div style="min-width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});
+                  display:flex;align-items:center;justify-content:center;
+                  font-family:'Fraunces',serif;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0">3</div>
+      <div>
+        <div style="font-weight:600;color:#23252f;font-size:.9rem">Kategorien prüfen</div>
+        <div style="color:#6b7280;font-size:.84rem;margin-top:.15rem">
+          Unter <b>Daten &amp; Annahmen → Kategorien</b> könnt ihr festlegen,
+          welche App zu welcher Kategorie gehört — und wie produktiv sie zählt.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CSV-Format -->
+  <div style="background:#ffffff;border:1px solid #e8e6df;border-radius:16px;padding:1.4rem 1.6rem">
+    <div style="font-weight:600;color:#23252f;font-size:.88rem;margin-bottom:.7rem">
+      So muss die CSV aussehen
+    </div>
+    <div style="font-family:monospace;font-size:.78rem;color:#6b7280;
+                background:#f6f5f1;border-radius:8px;padding:.7rem .9rem;
+                line-height:1.9;overflow-x:auto">
+      woche, datum, daten_kategorie, name, dauer_minuten<br>
+      12, 16.03.2026, tag_gesamt, gesamt, 225<br>
+      12, 16.03.2026, top_app, WhatsApp, 54<br>
+      12, 16.03.2026, top_app, Instagram, 47<br>
+      12, 16.03.-22.03., woche_gesamt, gesamt, 1765
+    </div>
+    <div style="color:#9ca3af;font-size:.76rem;margin-top:.75rem;line-height:1.55">
+      Drei Tage pro Woche: <b>Montag, Dienstag, Mittwoch</b>. Datumsformat: <b>TT.MM.JJJJ</b>.
+      Leerzeilen zwischen den Blöcken sind okay.
+    </div>
+  </div>
+
+</div>""", unsafe_allow_html=True)
+    st.stop()
 
 # ── KPIs ─────────────────────────────────────────────────────────────────────────
 tot1   = d1["woche"]["dauer_minuten"].sum()
