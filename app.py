@@ -57,6 +57,7 @@ APP_PRESET = {
     # Kommunikation
     "whatsapp": "Kommunikation", "telegram": "Kommunikation", "signal": "Kommunikation",
     "messenger": "Kommunikation", "imessage": "Kommunikation", "discord": "Kommunikation",
+    "phone": "Kommunikation",
     # Produktivität / Tools
     "slack": "Produktivität", "teams": "Produktivität", "microsoft teams": "Produktivität",
     "zoom": "Produktivität", "gmail": "Produktivität", "mail": "Produktivität",
@@ -64,19 +65,50 @@ APP_PRESET = {
     "google docs": "Produktivität", "docs": "Produktivität", "word": "Produktivität",
     "excel": "Produktivität", "onenote": "Produktivität", "maps": "Produktivität",
     "google maps": "Produktivität", "calendar": "Produktivität",
+    # Produktivität — Kalender & Notizen
+    "calender": "Produktivität", "kalender": "Produktivität", "n kalender": "Produktivität",
+    "erinnerungen": "Produktivität", "notizen": "Produktivität",
+    "calculator": "Produktivität", "rechner": "Produktivität",
+    # Produktivität — Navigation & Reise
+    "db navigator": "Produktivität", "karten": "Produktivität",
+    "google.maps": "Produktivität", "googlemaps": "Produktivität",
+    # Produktivität — Finanzen & Banking
+    "paypal": "Produktivität", "sparkasse": "Produktivität",
+    "s-pushtan": "Produktivität", "trade_republik": "Produktivität",
+    "trade republik": "Produktivität",
+    # Produktivität — Kommunikation & Utilities
+    "fraenk": "Produktivität", "fraenk: die mobilfunk app": "Produktivität",
+    "neuland": "Produktivität",
     # Soziale Medien
     "instagram": "Soziale Medien", "tiktok": "Soziale Medien", "snapchat": "Soziale Medien",
     "facebook": "Soziale Medien", "twitter": "Soziale Medien", "x": "Soziale Medien",
     "reddit": "Soziale Medien", "pinterest": "Soziale Medien", "linkedin": "Soziale Medien",
     # Unterhaltung
     "youtube": "Unterhaltung", "netflix": "Unterhaltung", "spotify": "Unterhaltung",
+    "spotofy": "Unterhaltung",
     "twitch": "Unterhaltung", "disney+": "Unterhaltung", "prime video": "Unterhaltung",
     "amazon prime video": "Unterhaltung",
+    "dice": "Unterhaltung", "faceapp": "Unterhaltung",
+    "sudoku": "Unterhaltung", "sudoku.com": "Unterhaltung", "sodoku.com": "Unterhaltung",
+    "pon": "Unterhaltung",
+    "einfachbacken.de": "Unterhaltung",
     # Lernen
     "duolingo": "Lernen", "anki": "Lernen", "coursera": "Lernen", "udemy": "Lernen",
     "khan academy": "Lernen", "kindle": "Lernen", "books": "Lernen",
-    # Browser → bewusst neutral
+    "bücher": "Lernen", "chatgpt": "Lernen", "claude": "Lernen",
+    "moodle.thi.de": "Lernen", "moodle": "Lernen",
+    # Sonstiges — Shopping
+    "bestsecret": "Sonstiges", "breuninger": "Sonstiges", "chrono24": "Sonstiges",
+    "vestiaire": "Sonstiges", "vinted": "Sonstiges",
+    "zalando": "Sonstiges", "zalandp": "Sonstiges",
+    # Sonstiges — Fitness & Gesundheit
+    "strava": "Sonstiges", "wellpass": "Sonstiges",
+    # Sonstiges — System & Utilities
     "chrome": "Sonstiges", "safari": "Sonstiges", "firefox": "Sonstiges",
+    "google.com": "Sonstiges", "marcelpaa.com": "Sonstiges",
+    "fotos": "Sonstiges", "photos": "Sonstiges", "kamera": "Sonstiges",
+    "settings": "Sonstiges", "uhr": "Sonstiges", "wetter": "Sonstiges",
+    "wg-gesucht.de": "Sonstiges", "next": "Sonstiges",
 }
 
 WD_MAP = {0: "Mo", 1: "Di", 2: "Mi", 3: "Do", 4: "Fr", 5: "Sa", 6: "So"}
@@ -90,6 +122,20 @@ DISPLAY_NAMES = {
     "telegram": "Telegram", "twitter": "Twitter", "reddit": "Reddit",
     "duolingo": "Duolingo", "pinterest": "Pinterest", "facebook": "Facebook",
     "outlook": "Outlook", "onenote": "OneNote", "notion": "Notion",
+    # Neue Display-Namen
+    "chatgpt": "ChatGPT", "claude": "Claude",
+    "db navigator": "DB Navigator", "s-pushtan": "S-pushTAN",
+    "n kalender": "N Kalender", "trade_republik": "Trade Republik",
+    "wg-gesucht.de": "WG-Gesucht.de", "moodle.thi.de": "Moodle THI",
+    "bestsecret": "BestSecret", "chrono24": "Chrono24",
+    "vestiaire": "Vestiaire", "vinted": "Vinted",
+    "zalando": "Zalando", "breuninger": "Breuninger",
+    "sparkasse": "Sparkasse", "paypal": "PayPal",
+    "strava": "Strava", "wellpass": "Wellpass",
+    "spotofy": "Spotify",   # typo → korrekter Name
+    "zalandp": "Zalando",   # typo → korrekter Name
+    "sodoku.com": "Sudoku.com",  # typo → korrekter Name
+    "sudoku.com": "Sudoku.com",
 }
 
 # ── Globales Styling ─────────────────────────────────────────────────────────────
