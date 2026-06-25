@@ -695,6 +695,17 @@ def current_weights():
 
 # ── Sidebar ──────────────────────────────────────────────────────────────────────
 with st.sidebar:
+    if not (st.session_state.get("f1") or st.session_state.get("f2")):
+        st.markdown(
+            f'<div style="background:linear-gradient(135deg,{P1_COLOR}18,{P2_COLOR}18);'
+            f'border:1.5px dashed {P1_COLOR}55;border-radius:12px;'
+            f'padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:#374151;'
+            f'line-height:1.5">'
+            f'<b>Hier hochladen</b><br>'
+            f'CSV-Dateien pro Person unterhalb eintragen — alle Wochen auf einmal auswählbar.'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
     st.markdown("### Daten")
     st.markdown('<span class="tag-p1">Person 1</span>', unsafe_allow_html=True)
     name1  = st.text_input("Name", value="Sarah", key="n1")
@@ -804,79 +815,86 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 if not files1 and not files2:
-    st.markdown(f"""
-<div style="max-width:680px;margin-top:1.5rem">
 
-  <!-- Willkommenstext -->
-  <p style="color:#6b7280;font-size:.95rem;line-height:1.7;margin-bottom:2rem">
-    Diese App vergleicht die Bildschirmzeit von zwei Personen über mehrere Wochen —
-    und erzählt daraus eine Geschichte. Ladet eure CSV-Dateien hoch und los geht's.
-  </p>
+    st.markdown(
+        f'<div style="background:{P1_COLOR}12;border:1.5px solid {P1_COLOR}44;'
+        f'border-radius:12px;padding:.8rem 1.2rem;margin-bottom:1.4rem;'
+        f'max-width:460px;display:flex;align-items:center;gap:.8rem">'
+        f'<div style="font-size:1.4rem">←</div>'
+        f'<div style="font-size:.88rem;color:#374151;line-height:1.45">'
+        f'<b>Sidebar öffnen</b> (Pfeil oben links) und dort die CSV-Dateien hochladen.'
+        f'</div></div>',
+        unsafe_allow_html=True,
+    )
 
-  <!-- Schritt-für-Schritt -->
-  <div style="display:flex;flex-direction:column;gap:.85rem;margin-bottom:2rem">
+    st.markdown(
+        '<p style="color:#6b7280;font-size:.95rem;line-height:1.7;max-width:600px;margin-bottom:1.8rem">'
+        "Diese App vergleicht die Bildschirmzeit von zwei Personen über mehrere Wochen — "
+        "und erzählt daraus eine Geschichte. Ladet eure CSV-Dateien hoch und los geht's."
+        "</p>",
+        unsafe_allow_html=True,
+    )
 
-    <div style="display:flex;gap:1rem;align-items:flex-start">
-      <div style="min-width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});
-                  display:flex;align-items:center;justify-content:center;
-                  font-family:'Fraunces',serif;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0">1</div>
-      <div>
-        <div style="font-weight:600;color:#23252f;font-size:.9rem">Namen eintragen</div>
-        <div style="color:#6b7280;font-size:.84rem;margin-top:.15rem">
-          In der Sidebar links tragt ihr eure Namen ein — Person 1 und Person 2.
-        </div>
-      </div>
-    </div>
+    col1, col2, col3 = st.columns(3)
+    step_style = (
+        "background:#ffffff;border:1px solid #e8e6df;border-radius:16px;"
+        "padding:1.3rem 1.4rem;height:100%"
+    )
+    num_style = (
+        f"display:inline-flex;align-items:center;justify-content:center;"
+        f"width:26px;height:26px;border-radius:50%;"
+        f"background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});"
+        f"font-family:'Fraunces',serif;font-size:.8rem;font-weight:700;"
+        f"color:#fff;margin-bottom:.7rem"
+    )
 
-    <div style="display:flex;gap:1rem;align-items:flex-start">
-      <div style="min-width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});
-                  display:flex;align-items:center;justify-content:center;
-                  font-family:'Fraunces',serif;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0">2</div>
-      <div>
-        <div style="font-weight:600;color:#23252f;font-size:.9rem">CSV-Dateien hochladen</div>
-        <div style="color:#6b7280;font-size:.84rem;margin-top:.15rem">
-          Pro Person eine oder mehrere CSV-Dateien — eine Datei pro Woche, oder alle auf einmal.
-          Ihr könnt mehrere Dateien gleichzeitig auswählen.
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:1rem;align-items:flex-start">
-      <div style="min-width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,{P1_COLOR},{P2_COLOR});
-                  display:flex;align-items:center;justify-content:center;
-                  font-family:'Fraunces',serif;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0">3</div>
-      <div>
-        <div style="font-weight:600;color:#23252f;font-size:.9rem">Kategorien prüfen</div>
-        <div style="color:#6b7280;font-size:.84rem;margin-top:.15rem">
-          Unter <b>Daten &amp; Annahmen → Kategorien</b> könnt ihr festlegen,
-          welche App zu welcher Kategorie gehört — und wie produktiv sie zählt.
-        </div>
-      </div>
-    </div>
-
+    with col1:
+        st.markdown(f"""
+<div style="{step_style}">
+  <div style="{num_style}">1</div>
+  <div style="font-weight:600;color:#23252f;font-size:.9rem;margin-bottom:.3rem">Namen eintragen</div>
+  <div style="color:#6b7280;font-size:.84rem;line-height:1.55">
+    In der <b>Sidebar links</b> eure Namen für Person 1 und Person 2 eintragen.
   </div>
-
-  <!-- CSV-Format -->
-  <div style="background:#ffffff;border:1px solid #e8e6df;border-radius:16px;padding:1.4rem 1.6rem">
-    <div style="font-weight:600;color:#23252f;font-size:.88rem;margin-bottom:.7rem">
-      So muss die CSV aussehen
-    </div>
-    <div style="font-family:monospace;font-size:.78rem;color:#6b7280;
-                background:#f6f5f1;border-radius:8px;padding:.7rem .9rem;
-                line-height:1.9;overflow-x:auto">
-      woche, datum, daten_kategorie, name, dauer_minuten<br>
-      12, 16.03.2026, tag_gesamt, gesamt, 225<br>
-      12, 16.03.2026, top_app, WhatsApp, 54<br>
-      12, 16.03.2026, top_app, Instagram, 47<br>
-      12, 16.03.-22.03., woche_gesamt, gesamt, 1765
-    </div>
-    <div style="color:#9ca3af;font-size:.76rem;margin-top:.75rem;line-height:1.55">
-      Drei Tage pro Woche: <b>Montag, Dienstag, Mittwoch</b>. Datumsformat: <b>TT.MM.JJJJ</b>.
-      Leerzeilen zwischen den Blöcken sind okay.
-    </div>
-  </div>
-
 </div>""", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown(f"""
+<div style="{step_style}">
+  <div style="{num_style}">2</div>
+  <div style="font-weight:600;color:#23252f;font-size:.9rem;margin-bottom:.3rem">CSV hochladen</div>
+  <div style="color:#6b7280;font-size:.84rem;line-height:1.55">
+    Pro Person eine oder mehrere CSV-Dateien — ihr könnt <b>alle Wochen gleichzeitig</b> auswählen.
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    with col3:
+        st.markdown(f"""
+<div style="{step_style}">
+  <div style="{num_style}">3</div>
+  <div style="font-weight:600;color:#23252f;font-size:.9rem;margin-bottom:.3rem">Kategorien anpassen</div>
+  <div style="color:#6b7280;font-size:.84rem;line-height:1.55">
+    Unter <b>Daten &amp; Annahmen → Kategorien</b> legt ihr fest, was produktiv zählt.
+  </div>
+</div>""", unsafe_allow_html=True)
+
+    st.markdown("<div style='height:1.6rem'></div>", unsafe_allow_html=True)
+    section("So muss die CSV aussehen")
+
+    st.markdown("""
+<div style="background:#ffffff;border:1px solid #e8e6df;border-radius:14px;padding:1.2rem 1.5rem;max-width:580px">
+  <div style="font-family:monospace;font-size:.82rem;color:#374151;line-height:2">
+    woche, datum, daten_kategorie, name, dauer_minuten<br>
+    12, 16.03.2026, tag_gesamt, gesamt, 225<br>
+    12, 16.03.2026, top_app, WhatsApp, 54<br>
+    12, 16.03.2026, top_app, Instagram, 47<br>
+    12, 16.03.-22.03., woche_gesamt, gesamt, 1765
+  </div>
+  <div style="color:#9ca3af;font-size:.78rem;margin-top:.8rem;border-top:1px solid #f0ede5;padding-top:.6rem">
+    Drei Tage pro Woche: <b>Montag, Dienstag, Mittwoch</b> &nbsp;·&nbsp; Datum: <b>TT.MM.JJJJ</b> &nbsp;·&nbsp; Leerzeilen zwischen Blöcken sind okay.
+  </div>
+</div>""", unsafe_allow_html=True)
+
     st.stop()
 
 # ── KPIs ─────────────────────────────────────────────────────────────────────────
