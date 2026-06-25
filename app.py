@@ -84,28 +84,27 @@ APP_PRESET = {
     "facebook": "Soziale Medien", "twitter": "Soziale Medien", "x": "Soziale Medien",
     "reddit": "Soziale Medien", "pinterest": "Soziale Medien", "linkedin": "Soziale Medien",
     # Unterhaltung
-    "youtube": "Unterhaltung", "netflix": "Unterhaltung", "spotify": "Unterhaltung",
-    "spotofy": "Unterhaltung",
+    "netflix": "Unterhaltung", "spotify": "Unterhaltung", "spotofy": "Unterhaltung",
     "twitch": "Unterhaltung", "disney+": "Unterhaltung", "prime video": "Unterhaltung",
     "amazon prime video": "Unterhaltung",
-    "dice": "Unterhaltung", "faceapp": "Unterhaltung",
-    "sudoku": "Unterhaltung", "sudoku.com": "Unterhaltung", "sodoku.com": "Unterhaltung",
-    "pon": "Unterhaltung",
-    "einfachbacken.de": "Unterhaltung",
+    "dice": "Unterhaltung", "faceapp": "Unterhaltung", "pon": "Unterhaltung",
+    # Soziale Medien
+    "youtube": "Soziale Medien",
     # Lernen
     "duolingo": "Lernen", "anki": "Lernen", "coursera": "Lernen", "udemy": "Lernen",
     "khan academy": "Lernen", "kindle": "Lernen", "books": "Lernen",
     "bücher": "Lernen", "chatgpt": "Lernen", "claude": "Lernen",
     "moodle.thi.de": "Lernen", "moodle": "Lernen",
+    "strava": "Lernen", "wellpass": "Lernen",
+    "einfachbacken.de": "Lernen", "marcelpaa.com": "Lernen",
     # Sonstiges — Shopping
     "bestsecret": "Sonstiges", "breuninger": "Sonstiges", "chrono24": "Sonstiges",
     "vestiaire": "Sonstiges", "vinted": "Sonstiges",
     "zalando": "Sonstiges", "zalandp": "Sonstiges",
-    # Sonstiges — Fitness & Gesundheit
-    "strava": "Sonstiges", "wellpass": "Sonstiges",
-    # Sonstiges — System & Utilities
+    # Sonstiges — Spiele & Utilities
+    "sudoku": "Sonstiges", "sudoku.com": "Sonstiges", "sodoku.com": "Sonstiges",
     "chrome": "Sonstiges", "safari": "Sonstiges", "firefox": "Sonstiges",
-    "google.com": "Sonstiges", "marcelpaa.com": "Sonstiges",
+    "google.com": "Sonstiges",
     "fotos": "Sonstiges", "photos": "Sonstiges", "kamera": "Sonstiges",
     "settings": "Sonstiges", "uhr": "Sonstiges", "wetter": "Sonstiges",
     "wg-gesucht.de": "Sonstiges", "next": "Sonstiges",
