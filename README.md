@@ -1,109 +1,112 @@
-# 📱 ScreenTime Duo
+# Proof of Life
+**Was hast du wirklich gemacht?**
 
-Bildschirmzeit-Vergleich zweier Personen über 10–15 Wochen — statistisches Storytelling mit Streamlit.
+Bildschirmzeit-Vergleich zweier Personen über mehrere Wochen — als interaktives Streamlit-Dashboard.
+
+---
 
 ## Schnellstart
 
 ```bash
+# 1. Abhängigkeiten installieren
 pip install -r requirements.txt
+
+# 2. App starten
 streamlit run app.py
 ```
 
-Ohne hochgeladene Dateien startet die App mit **Demo-Daten** (13 Wochen, je Mo/Di/Mi).
+Der Browser öffnet sich automatisch unter `http://localhost:8501`
 
 ---
 
-## CSV-Format (fix, ändert sich nicht)
+## Voraussetzungen
 
-Pro Person werden beliebig viele CSV-Dateien hochgeladen — typischerweise eine pro Woche.
-Alle Dateien folgen exakt diesem Format:
-
-| Spalte            | Typ    | Beschreibung                                              |
-|-------------------|--------|-----------------------------------------------------------|
-| `woche`           | Zahl   | ISO-Kalenderwoche, z. B. `12`                             |
-| `datum`           | Text   | Tageszeilen: `TT.MM.JJJJ` · Wochenzeile: `TT.MM.-TT.MM.` |
-| `daten_kategorie` | Text   | `woche_gesamt`, `tag_gesamt` oder `top_app`               |
-| `name`            | Text   | `gesamt` für Tages-/Wochensummen, App-Name für top_app    |
-| `dauer_minuten`   | Zahl   | Zeit in Minuten                                           |
-
-**Tage:** Jede Woche enthält genau **3 Tage: Montag, Dienstag, Mittwoch**.
-**Datumsformat:** Tageszeilen müssen `TT.MM.JJJJ` sein (z. B. `16.03.2026`). Abweichende
-Formate werden erkannt und in der App als Warnung gemeldet (keine stillen Fehler).
-**Leerzeilen** zwischen Blöcken sind erlaubt und werden ignoriert.
-**App-Namen** dürfen klein oder groß geschrieben sein (werden automatisch normalisiert).
-**Leerzeichen** vor Spaltennamen werden automatisch entfernt.
-Doppelt hochgeladene Wochen werden automatisch dedupliziert.
-
-### Beispiel (eine Woche = eine Datei)
+- Python 3.10 oder neuer
+- pip
 
 ```
-woche,datum,daten_kategorie,name, dauer_minuten
+streamlit>=1.49.0
+pandas>=2.0.0
+plotly>=5.18.0
+numpy>=1.26.0
+scipy>=1.11.0
+statsmodels>=0.14.0
+```
+
+---
+
+## Daten hochladen
+
+1. App starten — Sidebar links öffnen
+2. Namen für Person 1 und Person 2 eintragen
+3. Pro Person eine oder mehrere CSV-Dateien hochladen (alle Wochen auf einmal auswählbar)
+
+### CSV-Format
+
+Jede Datei entspricht einer Woche. Die drei erfassten Tage sind immer **Montag, Dienstag, Mittwoch**.
+
+| Spalte | Beispiel | Beschreibung |
+|---|---|---|
+| `woche` | `12` | ISO-Kalenderwoche |
+| `datum` | `16.03.2026` | Format TT.MM.JJJJ (Tageszeilen) |
+| `daten_kategorie` | `tag_gesamt` | `woche_gesamt`, `tag_gesamt` oder `top_app` |
+| `name` | `WhatsApp` | `gesamt` für Summen, App-Name für top_app |
+| `dauer_minuten` | `54` | Zeit in Minuten |
+
+**Beispiel-CSV:**
+```
+woche,datum,daten_kategorie,name,dauer_minuten
 12,16.03.-22.03.,woche_gesamt,gesamt,1765
-
 12,16.03.2026,tag_gesamt,gesamt,225
-12,16.03.2026,top_app,whatsapp,54
-12,16.03.2026,top_app,instagram,47
-12,16.03.2026,top_app,youtube,38
-
+12,16.03.2026,top_app,WhatsApp,54
+12,16.03.2026,top_app,Instagram,47
 12,17.03.2026,tag_gesamt,gesamt,196
-12,17.03.2026,top_app,whatsapp,58
-12,17.03.2026,top_app,slack,43
-
-12,18.03.2026,tag_gesamt,gesamt,290
-12,18.03.2026,top_app,whatsapp,140
-12,18.03.2026,top_app,sudoku,41
+12,17.03.2026,top_app,WhatsApp,58
 ```
 
 ---
 
-## Funktionen (Tabs)
+## Aufbau der App
 
-| Tab             | Inhalt                                                                       |
-|-----------------|------------------------------------------------------------------------------|
-| Zeitverlauf     | Wochenverlauf, Tagesvergleich (Mo/Di/Mi), **Trendwende-Analyse**             |
-| App-Analyse     | Top-Apps pro Person (Farbe = Kategorie), App-Zeitverlauf                      |
-| Vergleich       | Radar gemeinsamer Apps, Differenzdiagramm, Korrelation                       |
-| Produktivität   | Score 0–100 aus Kategorie-Gewichten, Wochentrend, beste/schlechteste Woche   |
-| Verdrängung     | App- & Kategorie-Korrelationsmatrix (Substitute vs. Komplemente), p-Werte    |
-| Verteilung      | Violin, Histogramm+KDE, Q-Q-Plot, Shapiro-Wilk, IQR-Ausreißer, KDE/Kategorie |
-| Statistik       | Kennzahlen, Boxplot, Heatmap, **Bootstrap-Konfidenzintervalle je Wochentag** |
-| Kategorien      | App→Kategorie zuordnen (editierbar), Gewichte einstellen, Verteilung         |
-| Lebenszeit      | Hochrechnung, Vergleichsgrößen, „The Tail End"-Eltern-Perspektive            |
-| Daten           | Rohdaten, CSV-Vorlage herunterladen                                          |
+Die Navigation ist zweistufig — oben Gruppe wählen, dann Tab.
 
-### Statistische Hinweise (Ehrlichkeit)
+### Story
+| Tab | Inhalt |
+|---|---|
+| Lebenszeit | Jahreshochrechnung, Vergleichsgrößen (Bücher, Spaziergänge …), The Tail End |
+| Produktivität | Score 0–100 basierend auf Kategorie-Gewichten, Wochentrend, beste/schlechteste Woche |
+| Vergleich | Radar gemeinsamer Apps, Differenzdiagramm, Korrelation |
 
-- **Produktivitäts-Score** ist subjektiv — er hängt vollständig von den eingestellten
-  Kategorie-Gewichten ab. Das UI kommuniziert das offen.
-- **Korrelationen** (Verdrängung): bei 10–15 Wochen ist *n* klein; die meisten Werte
-  sind statistisch nicht signifikant. Korrelation ≠ Kausalität. p-Werte werden angezeigt.
-- **Konfidenzintervalle** je Wochentag: Bootstrap (keine Verteilungsannahme); zusätzlich
-  wird die Standardabweichung (Streuung) gezeigt.
-- **Normalitätstest** (Shapiro-Wilk): bei kleinem n geringe Teststärke — p > 0.05 heißt
-  nicht „normalverteilt". Der Q-Q-Plot ist oft informativer.
-- **Trendwenden** (Zeitverlauf): lokale Hoch-/Tiefpunkte über Vorzeichenwechsel der
-  *ersten* Differenz — bewusst nicht „Wendepunkte" im mathematischen Sinn (zweite
-  Ableitung) und kein formales Change-Point-Verfahren (instabil bei n < 20).
-- **Lebenszeit**: alle Annahmen (Lesetempo, Besuche/Jahr, Wachstunden, Wochen/Jahr …)
-  sind einstellbar. Nichts wird als gesicherte Statistik behauptet. Das „Tail End"-Konzept
-  geht auf Tim Urbans Essay *„The Tail End"* (Wait But Why, 2015) zurück.
+### Analysen
+| Tab | Inhalt |
+|---|---|
+| Zeitverlauf | Wochenverlauf, Tagesdetail, Kennzahlen & Boxplot, Trendwende-Analyse |
+| App-Analyse | Top-Apps pro Person, App-Zeitverlauf |
+| Verdrängung | Korrelationsmatrix (Substitute vs. Komplemente), p-Werte |
+
+### Daten & Annahmen
+| Tab | Inhalt |
+|---|---|
+| Daten | Rohdaten-Tabelle, CSV-Vorlage herunterladen |
+| Kategorien | App → Kategorie zuordnen, Produktivitäts-Gewichte einstellen |
 
 ---
 
-## Abhängigkeiten
+## Hinweise
 
-```
-streamlit · pandas · plotly · numpy · scipy · statsmodels
-```
+**Produktivitäts-Score** ist subjektiv — er hängt vollständig von den Kategorie-Gewichten ab, die du unter *Daten & Annahmen → Kategorien* einstellst.
 
-- `scipy` — Bootstrap-Hilfen, Shapiro-Wilk, Q-Q (probplot), KDE, Pearson-Korrelation
-- `statsmodels` — OLS-Trendlinie im Korrelations-Scatter (degradiert sauber, falls nicht installiert)
+**Korrelationen** (Verdrängung): Bei 10–15 Wochen ist n klein. Die meisten Werte sind statistisch nicht signifikant. p-Werte werden angezeigt.
+
+**Trendwenden**: Lokale Hoch-/Tiefpunkte über Vorzeichenwechsel der ersten Differenz — kein formales Change-Point-Verfahren.
+
+---
 
 ## Projektstruktur
 
 ```
-screentime_app/
+proof-of-life/
 ├── app.py            ← Hauptanwendung
-├── requirements.txt  ← Python-Abhängigkeiten
+├── requirements.txt  ← Abhängigkeiten
 └── README.md         ← Diese Datei
 ```
