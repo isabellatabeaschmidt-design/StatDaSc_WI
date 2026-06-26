@@ -729,7 +729,7 @@ with st.sidebar:
             f'padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:#374151;'
             f'line-height:1.5">'
             f'<b>Hier hochladen</b><br>'
-            f'CSV-Dateien pro Person unterhalb eintragen — alle Wochen auf einmal auswählbar.'
+            f'CSV-Dateien pro Person unterhalb eintragen, alle Wochen auf einmal auswählbar.'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -797,9 +797,9 @@ for d, nm in [(d1, name1), (d2, name2)]:
 _has1 = d1["_source"] == "upload"
 _has2 = d2["_source"] == "upload"
 if _has1 and not _has2:
-    st.warning(f"Nur **{name1}** hat Daten hochgeladen — lade auch für **{name2}** eine CSV hoch, damit alle Vergleiche funktionieren.")
+    st.warning(f"Nur **{name1}** hat Daten hochgeladen. Lade auch für **{name2}** eine CSV hoch, damit alle Vergleiche funktionieren.")
 elif _has2 and not _has1:
-    st.warning(f"Nur **{name2}** hat Daten hochgeladen — lade auch für **{name1}** eine CSV hoch, damit alle Vergleiche funktionieren.")
+    st.warning(f"Nur **{name2}** hat Daten hochgeladen. Lade auch für **{name1}** eine CSV hoch, damit alle Vergleiche funktionieren.")
 
 # Kategorien synchronisieren (auf Basis der ECHTEN App-Namen beider Personen)
 real_apps_lower = sorted(set(d1["apps"]["name"].str.lower()) | set(d2["apps"]["name"].str.lower()))
@@ -864,7 +864,7 @@ if not files1 and not files2:
 
     st.markdown(
         '<p style="color:#6b7280;font-size:.95rem;line-height:1.7;max-width:600px;margin-bottom:1.8rem">'
-        "Diese App vergleicht die Bildschirmzeit von zwei Personen über mehrere Wochen — "
+        "Diese App vergleicht die Bildschirmzeit von zwei Personen über mehrere Wochen "
         "und erzählt daraus eine Geschichte. Ladet eure CSV-Dateien hoch und los geht's."
         "</p>",
         unsafe_allow_html=True,
@@ -899,7 +899,7 @@ if not files1 and not files2:
   <div style="{num_style}">2</div>
   <div style="font-weight:600;color:#23252f;font-size:.9rem;margin-bottom:.3rem">CSV hochladen</div>
   <div style="color:#6b7280;font-size:.84rem;line-height:1.55">
-    Pro Person eine oder mehrere CSV-Dateien — ihr könnt <b>alle Wochen gleichzeitig</b> auswählen.
+    Pro Person eine oder mehrere CSV-Dateien. Ihr könnt <b>alle Wochen gleichzeitig</b> auswählen.
   </div>
 </div>""", unsafe_allow_html=True)
 
@@ -982,7 +982,7 @@ if nav_group == "Story":
   <div style="font-family:'Fraunces',serif;font-size:1.2rem;color:#374151;
               font-weight:600;margin-bottom:.35rem">Zeit in Perspektive</div>
   <div style="color:#6b7280;font-size:.88rem;line-height:1.6">
-    Diese Seite rechnet eure Bildschirmzeit in andere Einheiten um —
+    Diese Seite rechnet eure Bildschirmzeit in andere Einheiten um,
     nicht um zu urteilen, sondern um Größenordnungen greifbar zu machen.
     <b>Alle Annahmen sind einstellbar.</b>
   </div>
@@ -1037,7 +1037,7 @@ if nav_group == "Story":
 
         st.caption(
             f"Hochrechnung: Wochenschnitt × {weeks_per_year} Wochen. Saisonale Effekte "
-            f"(Ferien, Prüfungsphasen) sind nicht modelliert — die tatsächliche Jahressumme "
+            f"(Ferien, Prüfungsphasen) sind nicht modelliert. Die tatsächliche Jahressumme "
             f"kann abweichen."
         )
 
@@ -1092,7 +1092,7 @@ if nav_group == "Story":
         st.markdown("<div style='height:.5rem'></div>", unsafe_allow_html=True)
 
         # ── The Tail End ──────────────────────────────────────────────────────────
-        section("The Tail End — Die Eltern-Perspektive")
+        section("The Tail End: Die Eltern-Perspektive")
 
         st.markdown("""
 <div style="background:#fafaf9;border:1px solid #e8e6df;border-left:4px solid #6366f1;
@@ -1123,11 +1123,14 @@ if nav_group == "Story":
             rem_days     = rem_visits * days_visit
             rem_h        = rem_days * waking_h
 
-            ann_h_avg    = (ann1["annual_h"] + ann2["annual_h"]) / 2
-            ann_days_avg = ann_h_avg / waking_h
+            # Gesamte Bildschirmzeit über die verbleibenden Elternjahre
+            total_h1     = ann1["annual_h"] * rem_years
+            total_h2     = ann2["annual_h"] * rem_years
+            total_days1  = round(total_h1 / waking_h)
+            total_days2  = round(total_h2 / waking_h)
 
-            pct1 = (ann1["annual_h"] / rem_h * 100) if rem_h > 0 else 0
-            pct2 = (ann2["annual_h"] / rem_h * 100) if rem_h > 0 else 0
+            pct1 = (total_h1 / rem_h * 100) if rem_h > 0 else 0
+            pct2 = (total_h2 / rem_h * 100) if rem_h > 0 else 0
 
             st.markdown(f"""
 <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
@@ -1139,7 +1142,7 @@ if nav_group == "Story":
   <div class="metric-card" style="flex:1;min-width:160px">
     <div class="metric-label">Verbleibende Besuche</div>
     <div class="metric-value" style="color:#6366f1">{rem_visits}</div>
-    <div class="metric-sub">{visits_yr}×/Jahr · {days_visit} Tage</div>
+    <div class="metric-sub">{visits_yr}x pro Jahr, {days_visit} Tage</div>
   </div>
   <div class="metric-card" style="flex:1;min-width:160px">
     <div class="metric-label">Verbleibende Tage</div>
@@ -1150,13 +1153,11 @@ if nav_group == "Story":
 
             bar_data = pd.DataFrame({
                 "Kategorie": [
-                    f"Verbleibende Tage\nmit Elternteil",
-                    f"Bildschirmzeit/Jahr\n{name1}",
-                    f"Bildschirmzeit/Jahr\n{name2}",
+                    "Verbleibende Tage\nmit Elternteil",
+                    f"Bildschirmzeit\nin diesen {rem_years} Jahren\n{name1}",
+                    f"Bildschirmzeit\nin diesen {rem_years} Jahren\n{name2}",
                 ],
-                "Tage": [rem_days,
-                         round(ann1["annual_h"] / waking_h, 1),
-                         round(ann2["annual_h"] / waking_h, 1)],
+                "Tage": [rem_days, total_days1, total_days2],
                 "farbe": ["#6366f1", P1_COLOR, P2_COLOR],
             })
             fig_tail = go.Figure()
@@ -1170,12 +1171,12 @@ if nav_group == "Story":
                     showlegend=False,
                 ))
             fig_tail.update_layout(
-                **CS, height=220,
-                xaxis=dict(title=f"Tage (Wachstunden ÷ {waking_h})", gridcolor=GRID,
+                **CS, height=240,
+                xaxis=dict(title=f"Tage (Wachstunden / {waking_h})", gridcolor=GRID,
                            linecolor=LINE, zeroline=False),
                 yaxis=dict(gridcolor="rgba(0,0,0,0)", linecolor=LINE,
                            tickfont=dict(size=11)),
-                bargap=0.38, margin=dict(t=10, b=20, l=10, r=80),
+                bargap=0.38, margin=dict(t=10, b=20, l=10, r=90),
             )
             st.plotly_chart(fig_tail, width="stretch")
 
@@ -1184,21 +1185,23 @@ if nav_group == "Story":
                 f'<div style="background:{P1_COLOR}12;border:1px solid {P1_COLOR}44;'
                 f'border-radius:10px;padding:.65rem 1rem;flex:1;min-width:140px;font-size:.85rem">'
                 f'<b style="color:{P1_COLOR}">{name1}</b><br>'
-                f'Jährliche Bildschirmzeit entspricht<br>'
-                f'<b style="font-family:Fraunces,serif;font-size:1.3rem;color:{P1_COLOR}">'
-                f'{pct1:.1f}%</b> der gesch. Elternzeit</div>'
+                f'Gesamte Bildschirmzeit in diesen {rem_years} Jahren<br>'
+                f'<b style="font-family:Fraunces,serif;font-size:1.6rem;color:{P1_COLOR}">'
+                f'{pct1:.0f}%</b>'
+                f'<span style="font-size:.82rem;color:{P1_COLOR}"> der gesch. Elternzeit</span></div>'
                 f'<div style="background:{P2_COLOR}12;border:1px solid {P2_COLOR}44;'
                 f'border-radius:10px;padding:.65rem 1rem;flex:1;min-width:140px;font-size:.85rem">'
                 f'<b style="color:{P2_COLOR}">{name2}</b><br>'
-                f'Jährliche Bildschirmzeit entspricht<br>'
-                f'<b style="font-family:Fraunces,serif;font-size:1.3rem;color:{P2_COLOR}">'
-                f'{pct2:.1f}%</b> der gesch. Elternzeit</div></div>',
+                f'Gesamte Bildschirmzeit in diesen {rem_years} Jahren<br>'
+                f'<b style="font-family:Fraunces,serif;font-size:1.6rem;color:{P2_COLOR}">'
+                f'{pct2:.0f}%</b>'
+                f'<span style="font-size:.82rem;color:{P2_COLOR}"> der gesch. Elternzeit</span></div></div>',
                 unsafe_allow_html=True,
             )
             st.caption(
-                "Die %-Angabe setzt jährliche Bildschirmzeit (als Tage) ins Verhältnis zur "
-                "verbleibenden gemeinsamen Zeit mit einem Elternteil. "
-                "Beides sind Schätzungen auf Basis deiner Annahmen — keine Fakten."
+                f"Hochrechnung: Ø Jahresbildschirmzeit x {rem_years} verbleibende Jahre, "
+                f"verglichen mit der gesamten verbleibenden gemeinsamen Zeit ({rem_days} Tage). "
+                "Schätzung auf Basis eurer Annahmen. Keine gesicherten Zahlen."
             )
 
         st.markdown("""
@@ -1206,12 +1209,12 @@ if nav_group == "Story":
             margin-top:1.6rem;max-width:720px">
   <div style="font-family:'Fraunces',serif;font-size:1.15rem;color:#374151;
               font-weight:600;margin-bottom:.5rem">
-    Zahlen schaffen Perspektive — keine Urteile.
+    Zahlen schaffen Perspektive. Keine Urteile.
   </div>
   <div style="color:#6b7280;font-size:.9rem;line-height:1.65">
     Diese Zahlen sagen nichts darüber aus, ob Zeit gut oder schlecht verbracht wurde.
     Bildschirmzeit umfasst Video-Calls mit Freunden, das Lesen von Nachrichten,
-    kreative Projekte — und eben auch passives Scrollen.
+    kreative Projekte und eben auch passives Scrollen.
   </div>
 </div>""", unsafe_allow_html=True)
 
@@ -1361,7 +1364,7 @@ if nav_group == "Story":
 
     # ════════ STORY · Vergleich ══════════════════════════════════════════════════
     with s_cmp:
-        section("Gemeinsame Apps — Radardiagramm")
+        section("Gemeinsame Apps: Radardiagramm")
         app_df1 = d1["apps"].copy(); app_df1["name_l"] = app_df1["name"].str.lower()
         app_df2 = d2["apps"].copy(); app_df2["name_l"] = app_df2["name"].str.lower()
         shared_l = sorted(set(app_df1["name_l"]) & set(app_df2["name_l"]))[:7]
@@ -1383,7 +1386,7 @@ if nav_group == "Story":
                 legend_orientation="h", height=420, margin=dict(t=30))
             st.plotly_chart(fig_r, width="stretch")
         else:
-            st.info("Zu wenige gemeinsame Apps — weitere Wochen hinzufügen.")
+            st.info("Zu wenige gemeinsame Apps. Weitere Wochen hinzufügen.")
 
         section(f"Wöchentliche Differenz ({name1} minus {name2})")
         w1s = d1["woche"].groupby("woche")["dauer_minuten"].sum()
@@ -1422,10 +1425,10 @@ if nav_group == "Story":
                                title=dict(text=f"Korrelationskoeffizient r = {corr:.2f}",
                                           font=dict(color=INK, size=14, family="Fraunces")))
             st.plotly_chart(fig5, width="stretch")
-            cap = ("Hinweis: Bei nur wenigen Wochen ist r mit großer Unsicherheit behaftet — "
+            cap = ("Hinweis: Bei nur wenigen Wochen ist r mit großer Unsicherheit behaftet. "
                    "Korrelation bedeutet außerdem nicht Kausalität.")
             if trend is None:
-                cap += " (Trendlinie ausgeblendet — statsmodels nicht installiert.)"
+                cap += " (Trendlinie ausgeblendet, statsmodels nicht installiert.)"
             st.caption(cap)
         else:
             st.info("Mindestens 2 gemeinsame Wochen erforderlich.")
@@ -1559,7 +1562,7 @@ elif nav_group == "Analysen":
                 marker=dict(symbol="star", size=16, color=color,
                             line=dict(color="white", width=2)),
                 customdata=tp["typ"].values,
-                hovertemplate=(f"<b>{nm} — %{{customdata}}</b><br>"
+                hovertemplate=(f"<b>{nm}: %{{customdata}}</b><br>"
                                "KW %{x}: %{y:.0f} min<extra></extra>"),
                 showlegend=True,
             ))
@@ -1612,7 +1615,7 @@ elif nav_group == "Analysen":
             more = name1 if n1 > n2 else (name2 if n2 > n1 else None)
             if more:
                 st.caption(
-                    f"{more} zeigt mehr Trendwenden ({max(n1,n2)} vs {min(n1,n2)}) — "
+                    f"{more} zeigt mehr Trendwenden ({max(n1,n2)} vs {min(n1,n2)}). "
                     f"das kann auf einen weniger stabilen Nutzungs-Rhythmus hindeuten, "
                     f"ist aber bei kleinem n mit Vorsicht zu interpretieren."
                 )
@@ -1640,7 +1643,7 @@ elif nav_group == "Analysen":
                 fig.update_layout(**CS, height=330, margin=dict(t=34, b=10),
                                   legend_title_text="", showlegend=False,
                                   yaxis=dict(categoryorder="total ascending", gridcolor=GRID, linecolor=LINE),
-                                  title=dict(text=f"Top-Apps — {name}",
+                                  title=dict(text=f"Top-Apps: {name}",
                                              font=dict(color=INK, size=14, family="Fraunces")))
                 st.plotly_chart(fig, width="stretch")
 
@@ -1671,7 +1674,7 @@ elif nav_group == "Analysen":
 <div style="background:#fff7ed;border:1px solid #fed7aa;border-left:4px solid #f97316;
             border-radius:12px;padding:1rem 1.3rem;margin-bottom:1.2rem">
   <div style="font-weight:700;color:#9a3412;margin-bottom:.3rem">
-    Statistische Einschränkungen — bitte lesen
+    Statistische Einschränkungen
   </div>
   <div style="color:#7c2d12;font-size:.875rem;line-height:1.6">
     <b>Korrelation ≠ Kausalität.</b> Selbst eine starke negative Korrelation zwischen
@@ -1836,7 +1839,7 @@ elif nav_group == "Analysen":
 # DATEN & ANNAHMEN — Daten · Kategorien
 # ══════════════════════════════════════════════════════════════════════════════════
 elif nav_group == "Daten & Annahmen":
-    d_daten, d_cat = st.tabs(["Daten", "Kategorien — Produktivitätsranking"])
+    d_daten, d_cat = st.tabs(["Daten", "Kategorien: Produktivitätsranking"])
 
     # ════════ DATEN & ANNAHMEN · Daten ═══════════════════════════════════════════
     with d_daten:
@@ -1873,11 +1876,11 @@ elif nav_group == "Daten & Annahmen":
 <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #f59e0b;
             border-radius:12px;padding:.9rem 1.2rem;margin-bottom:1.1rem;font-size:.85rem">
   <b style="color:#92400e">Diese Einstellungen bestimmen den Produktivitäts-Score</b>
-  <span style="color:#78350f"> — du findest die Auswertung unter <b>Story → Produktivität</b>.</span>
+  <span style="color:#78350f">. Auswertung unter <b>Story → Produktivität</b>.</span>
 </div>""", unsafe_allow_html=True)
 
         st.markdown('<p class="lead">Jede App bekommt eine funktionale Kategorie. Häufige Apps sind '
-                    'vorausgefüllt — du kannst alles per Dropdown überschreiben. Die Zuordnung gilt für '
+                    'vorausgefüllt. Du kannst alles per Dropdown überschreiben. Die Zuordnung gilt für '
                     'beide Personen und wird für die ganze Sitzung gespeichert.</p>', unsafe_allow_html=True)
 
         cat_df = pd.DataFrame({
@@ -1903,7 +1906,7 @@ elif nav_group == "Daten & Annahmen":
 
         section("Produktivitäts-Gewicht pro Kategorie")
         st.markdown('<p class="lead">Lege fest, wie „wertvoll" eine Kategorie zählt: −1 (klar unproduktiv) '
-                    'bis +1 (klar produktiv), 0 ist neutral. Diese Gewichte sind bewusst <b>subjektiv</b> — '
+                    'bis +1 (klar produktiv), 0 ist neutral. Diese Gewichte sind bewusst <b>subjektiv</b>. '
                     'sie bilden die Grundlage für den Produktivitäts-Score unter Story → Produktivität.</p>',
                     unsafe_allow_html=True)
         wcols = st.columns(3)
