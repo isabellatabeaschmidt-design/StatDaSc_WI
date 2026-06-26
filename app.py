@@ -1434,7 +1434,7 @@ if nav_group == "Story":
 # ANALYSEN — Zeitverlauf · App-Analyse · Verdrängung
 # ══════════════════════════════════════════════════════════════════════════════════
 elif nav_group == "Analysen":
-    a_zeit, a_app, a_verd, a_dist = st.tabs(["Zeitverlauf", "App-Analyse", "Verdrängung", "Verteilung"])
+    a_zeit, a_app, a_verd = st.tabs(["Zeitverlauf", "App-Analyse", "Verdrängung"])
 
     # ════════ ANALYSEN · Zeitverlauf ═════════════════════════════════════════════
     with a_zeit:
@@ -1589,6 +1589,39 @@ elif nav_group == "Analysen":
                 "Keine Trendwenden gefunden. Mögliche Ursachen: zu wenige Wochen, "
                 "monotoner Verlauf, oder das Glättungsfenster ist zu groß."
             )
+
+        # ── Kennzahlen & Boxplot ──────────────────────────────────────────────
+        section("Kennzahlen & Streuung")
+        kz_cols = st.columns(2)
+        for col, d, name, color in [(kz_cols[0], d1, name1, P1_COLOR),
+                                     (kz_cols[1], d2, name2, P2_COLOR)]:
+            vals = d["tag"]["dauer_minuten"]
+            if vals.empty:
+                continue
+            with col:
+                st.markdown(
+                    f'<div style="font-weight:600;color:{color};'
+                    f'font-size:.88rem;margin-bottom:.5rem">{name}</div>',
+                    unsafe_allow_html=True)
+                m1, m2, m3, m4 = st.columns(4)
+                for mc, label, v in [
+                    (m1, "Mittelwert", mins_to_hm(vals.mean())),
+                    (m2, "Median",     mins_to_hm(vals.median())),
+                    (m3, "Std.-Abw.",  mins_to_hm(vals.std())),
+                    (m4, "Max",        mins_to_hm(vals.max())),
+                ]:
+                    mc.markdown(f"""<div class="metric-card">
+                      <div class="metric-label">{label}</div>
+                      <div class="metric-value" style="font-size:1.1rem;color:{color}">{v}</div>
+                    </div>""", unsafe_allow_html=True)
+
+        st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
+        fig_box = px.box(tag_all, x="woche", y="dauer_minuten", color="person",
+                         color_discrete_sequence=[P1_COLOR, P2_COLOR],
+                         labels={"dauer_minuten": "Minuten / Tag", "woche": "KW", "person": ""})
+        fig_box.update_layout(**CS, height=340, margin=dict(t=10, b=10), legend_title_text="")
+        st.plotly_chart(fig_box, width="stretch")
+        st.caption("Boxplot zeigt Median, IQR (Box), Whisker (1.5 × IQR) und Ausreißerpunkte pro Woche.")
 
     # ════════ ANALYSEN · App-Analyse ═════════════════════════════════════════════
     with a_app:
@@ -1798,220 +1831,6 @@ elif nav_group == "Analysen":
   Beobachtungen empfohlen; diese Analyse ist explorativer Natur.
 </div>""", unsafe_allow_html=True)
 
-    # ════════ ANALYSEN · Verteilung ══════════════════════════════════════════════
-    with a_dist:
-        P1_FILL = "rgba(23,179,166,0.22)"
-        P2_FILL = "rgba(236,108,166,0.22)"
-
-        n_dist1 = int(d1["tag"]["dauer_minuten"].dropna().shape[0])
-        n_dist2 = int(d2["tag"]["dauer_minuten"].dropna().shape[0])
-        n_dist_str = f"{n_dist1}" if n_dist1 == n_dist2 else f"{n_dist1} bzw. {n_dist2}"
-
-        st.markdown(f"""
-<div style="background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #3b82f6;
-            border-radius:12px;padding:1rem 1.3rem;margin-bottom:1.1rem">
-  <div style="font-weight:700;color:#1e3a8a;margin-bottom:.3rem">Statistische Einordnung</div>
-  <div style="color:#1e40af;font-size:.875rem;line-height:1.6">
-    <b>Shapiro-Wilk bei kleinem n:</b> Mit {n_dist_str} Datenpunkten ist die Teststärke gering.
-    p &gt; 0.05 bedeutet <em>nicht</em> normalverteilt — der <b>Q-Q-Plot</b> ist oft informativer.
-    <b>IQR-Ausreißer</b> sind statistische Extremwerte, keine Datenfehler.
-  </div>
-</div>""", unsafe_allow_html=True)
-
-        # ── Violin ────────────────────────────────────────────────────────────────
-        section("Tageszeit-Verteilung (Violin-Plot)")
-        fig_viol = go.Figure()
-        outlier_store = {}
-
-        for d_p, nm, color, fill in [
-            (d1, name1, P1_COLOR, P1_FILL),
-            (d2, name2, P2_COLOR, P2_FILL),
-        ]:
-            vals = d_p["tag"]["dauer_minuten"].dropna().values
-            if len(vals) == 0:
-                continue
-            fig_viol.add_trace(go.Violin(
-                x=[nm] * len(vals), y=vals, name=nm,
-                line_color=color, fillcolor=fill,
-                box_visible=True, meanline_visible=True,
-                points="all", jitter=0.38, pointpos=0,
-                marker=dict(size=5, color=color, opacity=0.45),
-                hoveron="points+kde",
-                hovertemplate=f"<b>{nm}</b><br>%{{y:.0f}} min<extra></extra>",
-            ))
-            out_df = detect_outliers(d_p["tag"], nm)
-            outlier_store[nm] = out_df
-            if not out_df.empty:
-                fig_viol.add_trace(go.Scatter(
-                    x=[nm] * len(out_df), y=out_df["dauer_minuten"],
-                    mode="markers", showlegend=False,
-                    marker=dict(symbol="x-thin-open", size=16, color="#ef4444",
-                                line=dict(width=3, color="#ef4444")),
-                    text=out_df["datum"] if "datum" in out_df.columns else None,
-                    hovertemplate="<b>Ausreißer</b><br>%{text}<br>%{y:.0f} min<extra></extra>",
-                ))
-
-        fig_viol.update_layout(
-            **CS, violinmode="group", height=440,
-            yaxis=dict(title="Minuten / Tag", gridcolor=GRID, linecolor=LINE, zeroline=False),
-            xaxis=dict(gridcolor="rgba(0,0,0,0)", linecolor=LINE),
-            legend_title_text="", margin=dict(t=10, b=10),
-        )
-        st.plotly_chart(fig_viol, width="stretch")
-        st.caption("Rote ✕ = Ausreißer nach Tukey-IQR (1.5 × IQR-Regel). Hover für Datum-Details.")
-
-        # ── Histogramm + KDE ──────────────────────────────────────────────────────
-        with st.expander("Histogramm + KDE-Kurve"):
-            fig_hist = go.Figure()
-            for d_p, nm, color, fill in [
-                (d1, name1, P1_COLOR, P1_FILL),
-                (d2, name2, P2_COLOR, P2_FILL),
-            ]:
-                vals = d_p["tag"]["dauer_minuten"].dropna().values
-                if len(vals) < 3:
-                    continue
-                fig_hist.add_trace(go.Histogram(
-                    x=vals, name=nm, histnorm="probability density",
-                    marker_color=fill, nbinsx=12, showlegend=True,
-                    hovertemplate="[%{x}] Dichte: %{y:.4f}<extra></extra>",
-                ))
-                if np.std(vals) > 0:
-                    kde_fn = gaussian_kde(vals)
-                    x_grid = np.linspace(vals.min() * 0.85, vals.max() * 1.1, 300)
-                    fig_hist.add_trace(go.Scatter(
-                        x=x_grid, y=kde_fn(x_grid),
-                        name=f"{nm} KDE", mode="lines",
-                        line=dict(color=color, width=2.5),
-                        hovertemplate="~%{x:.0f} min<br>Dichte: %{y:.5f}<extra></extra>",
-                    ))
-            fig_hist.update_traces(selector=dict(type="histogram"), opacity=0.55)
-            fig_hist.update_layout(
-                **CS, barmode="overlay", height=350,
-                xaxis=dict(title="Minuten / Tag", gridcolor=GRID, linecolor=LINE),
-                yaxis=dict(title="Dichte", gridcolor=GRID, linecolor=LINE, zeroline=False),
-                legend_title_text="", margin=dict(t=10, b=10),
-            )
-            st.plotly_chart(fig_hist, width="stretch")
-
-        # ── Q-Q-Plot + Shapiro-Wilk ────────────────────────────────────────────
-        section("Normalitätsprüfung: Q-Q-Plot & Shapiro-Wilk")
-        col_qq1, col_qq2 = st.columns(2)
-        for col, d_p, nm, color in [
-            (col_qq1, d1, name1, P1_COLOR),
-            (col_qq2, d2, name2, P2_COLOR),
-        ]:
-            vals = d_p["tag"]["dauer_minuten"].dropna().values
-            with col:
-                if len(vals) < 4:
-                    st.info(f"Zu wenige Daten für {nm}.")
-                    continue
-                if np.std(vals) == 0:
-                    st.info(f"{nm}: alle Tageswerte identisch.")
-                    continue
-                (osm, osr), (slope, intercept, r_qq) = scipy_probplot(vals, dist="norm", fit=True)
-                x_ref = np.array([float(osm.min()), float(osm.max())])
-                fig_qq = go.Figure()
-                fig_qq.add_trace(go.Scatter(
-                    x=x_ref, y=slope * x_ref + intercept, mode="lines",
-                    name="Normalverteilung",
-                    line=dict(color="#cbd5e1", dash="dash", width=2), showlegend=True,
-                ))
-                fig_qq.add_trace(go.Scatter(
-                    x=osm, y=osr, mode="markers", name=nm,
-                    marker=dict(color=color, size=7, opacity=0.85,
-                                line=dict(color="#fff", width=1)),
-                    hovertemplate="Theor. Q: %{x:.2f}<br>Emp. Q: %{y:.0f} min<extra></extra>",
-                ))
-                fig_qq.update_layout(
-                    **CS, height=300,
-                    xaxis=dict(title="Theoretische Quantile", gridcolor=GRID, linecolor=LINE),
-                    yaxis=dict(title="Stichproben-Quantile [min]", gridcolor=GRID,
-                               linecolor=LINE, zeroline=False),
-                    title=dict(text=f"Q-Q — {nm}  (r = {r_qq:.3f})",
-                               font=dict(family="Fraunces", size=13, color=INK)),
-                    showlegend=False, margin=dict(t=50, b=40, l=10, r=10),
-                )
-                st.plotly_chart(fig_qq, width="stretch")
-
-                W, p_sw = shapiro(vals)
-                significant = p_sw < 0.05
-                sw_color = "#ef4444" if significant else "#10b981"
-                sw_label = "Abweichung (p < 0.05)" if significant else "Kein Befund (p >= 0.05)"
-                st.markdown(
-                    f'<div style="background:{sw_color}10;border:1px solid {sw_color}40;'
-                    f'border-radius:10px;padding:.7rem 1rem;font-size:.84rem">'
-                    f'<b>Shapiro-Wilk:</b> W = {W:.4f} · p = {p_sw:.4f} &nbsp;'
-                    f'<span style="background:{sw_color};color:#fff;padding:2px 9px;'
-                    f'border-radius:12px;font-size:.76rem;font-weight:600">{sw_label}</span>'
-                    f'<br><span style="color:#9ca3af;font-size:.76rem;margin-top:.25rem;display:block">'
-                    f'n = {len(vals)} · Q-Q-Korrelation r = {r_qq:.3f}</span></div>',
-                    unsafe_allow_html=True,
-                )
-        st.caption(
-            f"Punkte nahe der Diagonalen → normalverteilungsähnlich. "
-            f"S-Kurve → schwere Ränder. Bei n = {n_dist_str} sind leichte Abweichungen normal."
-        )
-
-        # ── Ausreißer-Tabelle ──────────────────────────────────────────────────
-        section("Ausreißer-Tage (Tukey-IQR 1.5 ×)")
-        all_out = pd.concat(list(outlier_store.values()), ignore_index=True)
-        if all_out.empty:
-            st.success("Keine Ausreißer gefunden — beide Verteilungen liegen im IQR-Bereich.")
-        else:
-            tbl_out = all_out.copy()
-            if "dauer_minuten" in tbl_out.columns:
-                tbl_out["Bildschirmzeit"] = tbl_out["dauer_minuten"].apply(mins_to_hm)
-            tbl_out = tbl_out.rename(columns={
-                "person": "Person", "datum": "Datum",
-                "wochentag": "Wochentag", "woche": "KW", "richtung": "Typ"})
-            show_cols = [c for c in ["Person","Datum","Wochentag","KW",
-                                      "Bildschirmzeit","Typ","IQR-Abstand"]
-                         if c in tbl_out.columns]
-            st.dataframe(tbl_out[show_cols], width="stretch", hide_index=True)
-            st.caption("IQR-Abstand: Wie weit der Wert außerhalb der Tukey-Fence liegt. "
-                       "Ausreißer sind statistische Extremwerte, keine Datenfehler.")
-
-        # ── Statistische Kennzahlen ────────────────────────────────────────────
-        section("Statistische Kennzahlen")
-        for d, name, color in [(d1, name1, P1_COLOR), (d2, name2, P2_COLOR)]:
-            vals = d["tag"]["dauer_minuten"]
-            if vals.empty:
-                continue
-            stats = {"Mittelwert": vals.mean(), "Median": vals.median(),
-                     "Std.-Abw.": vals.std(), "Min": vals.min(), "Max": vals.max()}
-            st.markdown(f'<div class="section-title" style="color:{color};'
-                        f'border-color:{color}33">{name}</div>', unsafe_allow_html=True)
-            stat_cols = st.columns(5)
-            for col, (k, v) in zip(stat_cols, stats.items()):
-                col.markdown(f"""<div class="metric-card">
-                  <div class="metric-label">{k}</div>
-                  <div class="metric-value" style="font-size:1.35rem;color:{color}">{mins_to_hm(v)}</div>
-                </div>""", unsafe_allow_html=True)
-
-        # ── Boxplot ────────────────────────────────────────────────────────────
-        section("Boxplot — Tageszeiten pro Woche")
-        fig_box = px.box(tag_all, x="woche", y="dauer_minuten", color="person",
-                         color_discrete_sequence=[P1_COLOR, P2_COLOR],
-                         labels={"dauer_minuten": "Minuten / Tag", "woche": "KW"})
-        fig_box.update_layout(**CS, height=380, margin=dict(t=20), legend_title_text="")
-        st.plotly_chart(fig_box, width="stretch")
-
-        # ── Heatmap ────────────────────────────────────────────────────────────
-        section("Heatmap — Tageszeit je Woche und Wochentag")
-        hp = st.radio("Person", [name1, name2], horizontal=True, key="hp")
-        dfh = d1["tag"] if hp == name1 else d2["tag"]
-        try:
-            pivot = dfh.pivot_table(index="woche", columns="wochentag",
-                                    values="dauer_minuten", aggfunc="mean")
-            pivot = pivot.reindex(columns=[w for w in WD_ORDER if w in pivot.columns])
-            fig_hm2 = px.imshow(pivot, color_continuous_scale="Teal",
-                                labels={"color": "Min / Tag"}, aspect="auto")
-            fig_hm2.update_layout(paper_bgcolor=PAPER, font_color=INK,
-                                  font_family="Hanken Grotesk", height=320,
-                                  margin=dict(t=20))
-            st.plotly_chart(fig_hm2, width="stretch")
-        except Exception:
-            st.info("Nicht genug Datenpunkte für die Heatmap.")
 
 # ══════════════════════════════════════════════════════════════════════════════════
 # DATEN & ANNAHMEN — Daten · Kategorien
