@@ -6,6 +6,9 @@ Bildschirmzeit-Vergleich zweier Personen über mehrere Wochen — als interaktiv
 ---
 
 ## Schnellstart
+Einfach über den link öffnen: https://semesterprojekt.streamlit.app/
+
+oder local laufen lassen:
 
 ```bash
 # 1. Abhängigkeiten installieren
@@ -39,7 +42,7 @@ statsmodels>=0.14.0
 
 1. App starten — Sidebar links öffnen
 2. Namen für Person 1 und Person 2 eintragen
-3. Pro Person eine oder mehrere CSV-Dateien hochladen (alle Wochen auf einmal auswählbar)
+3. CSV-Dateien hochladen (alle Wochen auf einmal auswählbar)
 
 ### CSV-Format
 
