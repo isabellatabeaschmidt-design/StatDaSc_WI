@@ -1466,6 +1466,38 @@ elif nav_group == "Analysen":
         fig2.update_layout(**CS, height=320, margin=dict(t=20, b=20), legend_title_text="")
         st.plotly_chart(fig2, width="stretch")
 
+        section("Kennzahlen & Streuung")
+        kz_cols = st.columns(2)
+        for col, d, name, color in [(kz_cols[0], d1, name1, P1_COLOR),
+                                     (kz_cols[1], d2, name2, P2_COLOR)]:
+            vals = d["tag"]["dauer_minuten"]
+            if vals.empty:
+                continue
+            with col:
+                st.markdown(
+                    f'<div style="font-weight:600;color:{color};'
+                    f'font-size:.88rem;margin-bottom:.5rem">{name}</div>',
+                    unsafe_allow_html=True)
+                m1, m2, m3, m4 = st.columns(4)
+                for mc, label, v in [
+                    (m1, "Mittelwert", mins_to_hm(vals.mean())),
+                    (m2, "Median",     mins_to_hm(vals.median())),
+                    (m3, "Std.-Abw.",  mins_to_hm(vals.std())),
+                    (m4, "Max",        mins_to_hm(vals.max())),
+                ]:
+                    mc.markdown(f"""<div class="metric-card">
+                      <div class="metric-label">{label}</div>
+                      <div class="metric-value" style="font-size:1.1rem;color:{color}">{v}</div>
+                    </div>""", unsafe_allow_html=True)
+
+        st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
+        fig_box = px.box(tag_all, x="woche", y="dauer_minuten", color="person",
+                         color_discrete_sequence=[P1_COLOR, P2_COLOR],
+                         labels={"dauer_minuten": "Minuten / Tag", "woche": "KW", "person": ""})
+        fig_box.update_layout(**CS, height=340, margin=dict(t=10, b=10), legend_title_text="")
+        st.plotly_chart(fig_box, width="stretch")
+        st.caption("Boxplot zeigt Median, IQR (Box), Whisker (1.5 × IQR) und Ausreißerpunkte pro Woche.")
+
         section("Trendwende-Analyse (lokale Hoch- & Tiefpunkte)")
         smooth_w = st.slider("Glättungsfenster (Wochen)", 2, 4, 3, key="tp_window",
                              help="Größeres Fenster → weniger, robustere Trendwenden")
@@ -1590,38 +1622,6 @@ elif nav_group == "Analysen":
                 "monotoner Verlauf, oder das Glättungsfenster ist zu groß."
             )
 
-        # ── Kennzahlen & Boxplot ──────────────────────────────────────────────
-        section("Kennzahlen & Streuung")
-        kz_cols = st.columns(2)
-        for col, d, name, color in [(kz_cols[0], d1, name1, P1_COLOR),
-                                     (kz_cols[1], d2, name2, P2_COLOR)]:
-            vals = d["tag"]["dauer_minuten"]
-            if vals.empty:
-                continue
-            with col:
-                st.markdown(
-                    f'<div style="font-weight:600;color:{color};'
-                    f'font-size:.88rem;margin-bottom:.5rem">{name}</div>',
-                    unsafe_allow_html=True)
-                m1, m2, m3, m4 = st.columns(4)
-                for mc, label, v in [
-                    (m1, "Mittelwert", mins_to_hm(vals.mean())),
-                    (m2, "Median",     mins_to_hm(vals.median())),
-                    (m3, "Std.-Abw.",  mins_to_hm(vals.std())),
-                    (m4, "Max",        mins_to_hm(vals.max())),
-                ]:
-                    mc.markdown(f"""<div class="metric-card">
-                      <div class="metric-label">{label}</div>
-                      <div class="metric-value" style="font-size:1.1rem;color:{color}">{v}</div>
-                    </div>""", unsafe_allow_html=True)
-
-        st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
-        fig_box = px.box(tag_all, x="woche", y="dauer_minuten", color="person",
-                         color_discrete_sequence=[P1_COLOR, P2_COLOR],
-                         labels={"dauer_minuten": "Minuten / Tag", "woche": "KW", "person": ""})
-        fig_box.update_layout(**CS, height=340, margin=dict(t=10, b=10), legend_title_text="")
-        st.plotly_chart(fig_box, width="stretch")
-        st.caption("Boxplot zeigt Median, IQR (Box), Whisker (1.5 × IQR) und Ausreißerpunkte pro Woche.")
 
     # ════════ ANALYSEN · App-Analyse ═════════════════════════════════════════════
     with a_app:
